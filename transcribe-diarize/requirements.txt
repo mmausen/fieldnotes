@@ -1,0 +1,7 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+numpy>=1.26
+
+# tests only
+soundfile>=0.12
+websockets>=12

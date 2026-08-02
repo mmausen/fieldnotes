@@ -1,0 +1,145 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>multitalker</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; height: 100vh; display: flex; flex-direction: column;
+    background: #0e0e10; color: #e6e6e6;
+    font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  header { display: flex; gap: 8px; align-items: center; padding: 10px 14px; border-bottom: 1px solid #232326; }
+  button {
+    font: inherit; padding: 6px 14px; border-radius: 6px; cursor: pointer;
+    background: #1c1c20; color: #e6e6e6; border: 1px solid #35353a;
+  }
+  button:hover:not(:disabled) { background: #26262b; }
+  button:disabled { opacity: .4; cursor: default; }
+  button.on { background: #2f6d4f; border-color: #3c8a64; }
+  #status { margin-left: auto; color: #8a8a92; font-size: 12px; }
+  #out { flex: 1; overflow-y: auto; padding: 14px 16px; }
+  .seg { display: flex; gap: 10px; margin-bottom: 4px; }
+  .spk { flex: 0 0 26px; text-align: right; opacity: .85; user-select: none; }
+  .txt { flex: 1; white-space: pre-wrap; word-break: break-word; }
+  .s0 .spk { color: #6ea8fe } .s0 .txt { color: #cfe0ff }
+  .s1 .spk { color: #7fd18f } .s1 .txt { color: #d3f0d8 }
+  .s2 .spk { color: #e0a76b } .s2 .txt { color: #f4e0c8 }
+  .s3 .spk { color: #d98cc4 } .s3 .txt { color: #f2d6ec }
+  .dim .txt { opacity: .45; }
+</style>
+
+<header>
+  <button id="mic">Mic</button>
+  <button id="sys">System audio</button>
+  <button id="stop" disabled>Stop</button>
+  <span id="status">idle</span>
+</header>
+<div id="out"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const out = $('out'), statusEl = $('status');
+let ctx, node, stream, ws, running = false;
+
+const SR = 16000, BLOCK = 1600; // 100 ms
+
+const workletSrc = `
+class Cap extends AudioWorkletProcessor {
+  constructor() { super(); this.buf = new Float32Array(${BLOCK}); this.n = 0; }
+  process(inputs) {
+    const ch = inputs[0][0];
+    if (!ch) return true;
+    for (let i = 0; i < ch.length; i++) {
+      this.buf[this.n++] = ch[i];
+      if (this.n === ${BLOCK}) { this.port.postMessage(this.buf.slice()); this.n = 0; }
+    }
+    return true;
+  }
+}
+registerProcessor('cap', Cap);`;
+
+function setStatus(t) { statusEl.textContent = t; }
+
+function render(segments) {
+  out.innerHTML = '';
+  for (const s of segments) {
+    const n = parseInt(String(s.spk).replace(/\D/g, '')) || 0;
+    const d = document.createElement('div');
+    d.className = 'seg s' + (n % 4) + (s.dim ? ' dim' : '');
+    d.innerHTML = '<span class="spk"></span><span class="txt"></span>';
+    d.firstChild.textContent = s.spk === '' ? '' : 'S' + n;
+    d.lastChild.textContent = s.text;
+    out.appendChild(d);
+  }
+  out.scrollTop = out.scrollHeight;
+}
+
+async function start(source) {
+  if (running) return;
+  try {
+    stream = source === 'mic'
+      ? await navigator.mediaDevices.getUserMedia({
+          audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false } })
+      : await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+  } catch (e) { setStatus('capture denied: ' + e.name); return; }
+
+  if (source === 'sys') {
+    stream.getVideoTracks().forEach(t => t.stop());
+    if (!stream.getAudioTracks().length) {
+      setStatus('no audio track — tick "Share tab audio"');
+      stream.getTracks().forEach(t => t.stop());
+      return;
+    }
+  }
+  stream.getAudioTracks()[0].onended = stop;
+
+  running = true;
+  $('mic').disabled = $('sys').disabled = true;
+  $('stop').disabled = false;
+  $(source === 'mic' ? 'mic' : 'sys').classList.add('on');
+
+  ws = new WebSocket(`ws://${location.host}/ws`);
+  ws.binaryType = 'arraybuffer';
+  ws.onmessage = e => {
+    const m = JSON.parse(e.data);
+    if (m.type === 'update') render(m.segments);
+    else if (m.type === 'status') setStatus(m.text);
+  };
+  ws.onclose = () => { if (running) { setStatus('disconnected'); stop(); } };
+  ws.onerror = () => setStatus('ws error');
+  await new Promise(r => ws.onopen = r);
+
+  ctx = new AudioContext({ sampleRate: SR });
+  await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([workletSrc], { type: 'text/javascript' })));
+  node = new AudioWorkletNode(ctx, 'cap', { numberOfInputs: 1, numberOfOutputs: 0, channelCount: 1 });
+  node.port.onmessage = ev => {
+    if (ws.readyState !== 1) return;
+    const f = ev.data, pcm = new Int16Array(f.length);
+    for (let i = 0; i < f.length; i++) {
+      const v = Math.max(-1, Math.min(1, f[i]));
+      pcm[i] = v < 0 ? v * 0x8000 : v * 0x7fff;
+    }
+    ws.send(pcm.buffer);
+  };
+  ctx.createMediaStreamSource(stream).connect(node);
+  setStatus(source === 'mic' ? 'listening (mic)' : 'listening (system)');
+}
+
+function stop() {
+  if (!running) return;
+  running = false;
+  try { ws && ws.readyState === 1 && ws.close(); } catch {}
+  try { node && node.disconnect(); } catch {}
+  try { ctx && ctx.close(); } catch {}
+  try { stream && stream.getTracks().forEach(t => t.stop()); } catch {}
+  $('mic').disabled = $('sys').disabled = false;
+  $('stop').disabled = true;
+  $('mic').classList.remove('on'); $('sys').classList.remove('on');
+  setStatus('idle');
+}
+
+$('mic').onclick = () => start('mic');
+$('sys').onclick = () => start('sys');
+$('stop').onclick = stop;
+</script>

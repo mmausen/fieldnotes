@@ -1,0 +1,22 @@
+# vendored upstream checkout + build (~1.7 GB, has its own .git) - setup.sh recreates it
+transcribe-diarize/cpp/
+
+# model weights (~1.1 GB) - setup.sh downloads/converts them
+transcribe-diarize/models/
+*.gguf
+
+# python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# canvas
+canvas/node_modules/
+canvas/dist/
+*.local
+
+# local editor/agent settings
+.claude/
+
+.DS_Store
