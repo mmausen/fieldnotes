@@ -1,0 +1,417 @@
+{
+  "source": "A1.tldr (Interview tree page)",
+  "modules": [
+    {
+      "index": 1,
+      "name": "The practice",
+      "questions": [
+        {
+          "id": "Q1.1",
+          "text": "To start, how would you describe the kind of physical design work you do?"
+        },
+        {
+          "id": "Q1.2",
+          "text": "And historically if we look at the design practice you had in this field from the past?"
+        },
+        {
+          "id": "Q1.3",
+          "text": "What do you actually produce - concepts, physical products, production-ready data, digital content?"
+        },
+        {
+          "id": "Q1.4",
+          "text": "Where does your involvement start and where does it stop?"
+        },
+        {
+          "id": "Q1.5",
+          "text": "How long have you been in the practice?"
+        },
+        {
+          "id": "Q1.6",
+          "text": "Has the kind of work shifted over that time?"
+        },
+        {
+          "id": "Q1.7",
+          "text": "Is there design work you do for yourself, outside paid work?"
+        },
+        {
+          "id": "Q1.8",
+          "text": "What scale did you work at - one-offs, small series, mass production? Who paid?"
+        },
+        {
+          "id": "Q1.9",
+          "text": "How much of what you designed actually reached production - and would you know?"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "name": "A concrete project",
+      "questions": [
+        {
+          "id": "Q2.1",
+          "text": "Can you walk us through your last complex project, from the moment it started for you to the moment it went to production or was deemed finished?"
+        },
+        {
+          "id": "Q2.2",
+          "text": "Where did most of your effort actually go?"
+        },
+        {
+          "id": "Q2.2.1",
+          "text": "Which of those takes longest?"
+        },
+        {
+          "id": "Q2.2.2",
+          "text": "Was any of it work you would not call design?"
+        },
+        {
+          "id": "Q2.4",
+          "text": "What was information before you started - platform, tooling, brand language?"
+        },
+        {
+          "id": "Q2.5",
+          "text": "Was there a brief at all - who formulated it, and in what form?"
+        },
+        {
+          "id": "Q2.7",
+          "text": "How much effort goes into positioning the work internally - what you show, to whom, when?"
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "name": "CAD & digital environment",
+      "questions": [
+        {
+          "id": "Q3.1",
+          "text": "Please describe your screen at a normal working moment. What is open, what is lying around the desk?"
+        },
+        {
+          "id": "Q3.2",
+          "text": "What kind of modeling would you do? software."
+        },
+        {
+          "id": "Q3.2.1",
+          "text": "Was this selected for you or is it your personal choice?"
+        },
+        {
+          "id": "Q3.3",
+          "text": "How does inheriting a project works?"
+        },
+        {
+          "id": "Q3.3.1",
+          "text": "How do you build a project so it survives change later?"
+        },
+        {
+          "id": "Q3.3.2",
+          "text": "What does a fragile model look like when you open one?"
+        },
+        {
+          "id": "Q3.3.3",
+          "text": "Do you build differently when you know it is a one-off?"
+        },
+        {
+          "id": "Q3.4",
+          "text": "Where do versions live - PDM, folders, filenames?"
+        },
+        {
+          "id": "Q3.5",
+          "text": "Anything in your stack you are not officially licensed for?"
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "name": "Materials",
+      "questions": [
+        {
+          "id": "Q4.1",
+          "text": "How does a material get chosen on a project?"
+        },
+        {
+          "id": "Q4.2",
+          "text": "At what point is material decided, by whom, and against what else is that budget weighed?"
+        },
+        {
+          "id": "Q4.3",
+          "text": "What do you go on - datasheet, supplier, past project, feel?"
+        },
+        {
+          "id": "Q4.4",
+          "text": "What do you know about a material that is not on its datasheet?",
+          "note": "tacit-knowledge probe, cross-tree twin"
+        },
+        {
+          "id": "Q4.4.1",
+          "text": "Where did you learn that - who told you, or what went wrong?"
+        },
+        {
+          "id": "Q4.4.2",
+          "text": "Has that knowledge ever turned out to be wrong?"
+        },
+        {
+          "id": "Q4.4.3",
+          "text": "Would you pass it on, or does it have to be earned?"
+        },
+        {
+          "id": "Q4.5",
+          "text": "Where does that knowledge live - a database, a sample shelf, a person?"
+        },
+        {
+          "id": "Q4.6",
+          "text": "How do cost, sustainability, or regulation enter the choice?"
+        },
+        {
+          "id": "Q4.7",
+          "text": "A material you wanted to use and could not"
+        },
+        {
+          "id": "Q4.8",
+          "text": "Does the material budget compete with components elsewhere in the product?"
+        },
+        {
+          "id": "Q4.9",
+          "text": "Has a material decision been reversed months later? What did that cost you?"
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "name": "Prototyping",
+      "questions": [
+        {
+          "id": "Q5.1",
+          "text": "Does the work become physical before production, or does it stay as data?"
+        },
+        {
+          "id": "Q5.2",
+          "text": "Walk us through the last thing that was prototyped for you. Why did you print it? ↳ concrete-instance probe"
+        },
+        {
+          "id": "Q5.3",
+          "text": "What are you checking - form, fit, function, or showing someone?"
+        },
+        {
+          "id": "Q5.4",
+          "text": "What is the prototyping process/material you found most helpfull?"
+        },
+        {
+          "id": "Q5.4.1",
+          "text": "What decides it - the object itself, or what the audience expects to see?"
+        },
+        {
+          "id": "Q5.5",
+          "text": "What does the physical part tell you that the screen does not?",
+          "note": "cross-tree twin"
+        },
+        {
+          "id": "Q5.6",
+          "text": "Does the number of rounds change with the kind of project - a refresh vs. something new?"
+        },
+        {
+          "id": "Q5.7",
+          "text": "Where do the rejected prototypes end up?",
+          "note": "negative control pair with Q8.4"
+        },
+        {
+          "id": "Q5.8",
+          "text": "Is there an expected level of finish for showing work, and who set that expectation?"
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "name": "Review & revision",
+      "questions": [
+        {
+          "id": "Q6.1",
+          "text": "What happens when a design does not get through review - and how far does your involvement reach?"
+        },
+        {
+          "id": "Q6.2",
+          "text": "When do people intervien?"
+        },
+        {
+          "id": "Q6.3",
+          "text": "Is the objection about the design, or about the brief being wrong?"
+        },
+        {
+          "id": "Q6.4",
+          "text": "Manufacturability feedback: when does it arrive, and is that too late?"
+        },
+        {
+          "id": "Q6.5",
+          "text": "How do you consolidate incompatible feedback?"
+        },
+        {
+          "id": "Q6.6",
+          "text": "When is a direction declared dead, and how late can that still happen?"
+        },
+        {
+          "id": "Q6.7",
+          "text": "When a project is killed late, what happens to the work already done?"
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "name": "Working with others",
+      "questions": [
+        {
+          "id": "Q7.1",
+          "text": "Who else has their hands on a project alongside you?"
+        },
+        {
+          "id": "Q7.2",
+          "text": "Engineering, tooling, suppliers, clients - who is unavoidable and who is chosen?"
+        },
+        {
+          "id": "Q7.3",
+          "text": "Several people on one model: simultaneous or sequential?"
+        },
+        {
+          "id": "Q7.4",
+          "text": "How does a handoff actually happen?",
+          "note": "cross-tree twin of deal desk 7"
+        },
+        {
+          "id": "Q7.5",
+          "text": "Where does the conversation about a project happen?"
+        },
+        {
+          "id": "Q7.6",
+          "text": "Where is the friction sharpest?"
+        },
+        {
+          "id": "Q7.7",
+          "text": "When you want useful feedback, who do you actually go to - and is that who you are supposed to ask?"
+        },
+        {
+          "id": "Q7.8",
+          "text": "Whose arguments count as decisive, and whose have to be wrapped in something else?"
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "name": "Expertise & learning",
+      "questions": [
+        {
+          "id": "Q8.1",
+          "text": "How would you describe someone who is really good at this work?"
+        },
+        {
+          "id": "Q8.2",
+          "text": "How did you learn this - training, or on the work?",
+          "note": "usually entailed by Q1.1"
+        },
+        {
+          "id": "Q8.3",
+          "text": "What does an experienced designer know that a new one does not?",
+          "note": "cross-tree twin of deal desk 8"
+        },
+        {
+          "id": "Q8.4",
+          "text": "Templates, saved settings, own libraries - anything you built for yourself?",
+          "note": "negative control pair with Q5.7"
+        },
+        {
+          "id": "Q8.5",
+          "text": "What do you know that is not written down anywhere?",
+          "note": "cross-tree twin of deal desk 8"
+        },
+        {
+          "id": "Q8.6",
+          "text": "How long until someone new is fully productive?"
+        },
+        {
+          "id": "Q8.7",
+          "text": "Something you do that you know is not the proper method"
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "name": "Mistakes & trust",
+      "questions": [
+        {
+          "id": "Q9.1",
+          "text": "What does a mistake look like in your work?"
+        },
+        {
+          "id": "Q9.2",
+          "text": "A mistake caught in CAD vs. in a prototype vs. in tooling: what changes?"
+        },
+        {
+          "id": "Q9.3",
+          "text": "How are mistakes caught, and what happens then?",
+          "note": "cross-tree twin of deal desk 9"
+        },
+        {
+          "id": "Q9.3.1",
+          "text": "Caught by you, or by someone else?"
+        },
+        {
+          "id": "Q9.3.2",
+          "text": "Does it get recorded anywhere, or just fixed?"
+        },
+        {
+          "id": "Q9.3.3",
+          "text": "Does the same kind of mistake come back?"
+        },
+        {
+          "id": "Q9.4",
+          "text": "Have you ever lost a model or a revision? What happened?"
+        },
+        {
+          "id": "Q9.5",
+          "text": "Do you trust simulation, or do you need the physical part?"
+        },
+        {
+          "id": "Q9.6",
+          "text": "Which part of the process do you trust the least?"
+        },
+        {
+          "id": "Q9.7",
+          "text": "Tolerances: where do they come from and who owns them?"
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "name": "Automation & AI",
+      "questions": [
+        {
+          "id": "Q10.1",
+          "text": "Has anything in your work been automated over the years? How did that go?"
+        },
+        {
+          "id": "Q10.2",
+          "text": "AI or generative tools in use today, officially or on the side"
+        },
+        {
+          "id": "Q10.3",
+          "text": "Generative design or topology optimisation - used, ignored, or distrusted?"
+        },
+        {
+          "id": "Q10.4",
+          "text": "Do you proof check what it produces, and how?"
+        },
+        {
+          "id": "Q10.5",
+          "text": "Automation imposed vs. adopted: attitudes"
+        },
+        {
+          "id": "Q10.6",
+          "text": "If one part of the work could be handed off tomorrow, which one?"
+        }
+      ]
+    }
+  ],
+  "legend": {
+    "green": "entails / answered",
+    "yellow": "suggests / loosely mentioned",
+    "grey": "prunes / no longer needed",
+    "red": "unanswered",
+    "reopen": "contradicts / re-code"
+  }
+}
