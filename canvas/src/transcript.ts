@@ -47,9 +47,6 @@ export class TranscriptCanvas {
   private liveId: TLShapeId | null = null
   private x = 0
   private nextY = 0
-  private originY = 0 // top of this session, for reset()
-  private ids: TLShapeId[] = [] // every shape this session created
-  private lastTurns: Turn[] = [] // most recent update, for flush()
   private follow = true
   private active = false
 
@@ -60,24 +57,8 @@ export class TranscriptCanvas {
     const b = this.editor.getCurrentPageBounds()
     this.x = b ? b.minX : 0
     this.nextY = b ? b.maxY + 80 : 0
-    this.originY = this.nextY
     this.committedUpto = 0
     this.liveId = null
-    this.ids = []
-    this.lastTurns = []
-    this.active = true
-  }
-
-  /** Rewind: drop everything this session drew and restart at the same origin.
-   * Required because a fresh server session restarts timestamps at 0, so the
-   * write-once turn ids would collide with the previous run's shapes. */
-  reset() {
-    this.editor.run(() => this.editor.deleteShapes(this.ids), { history: 'ignore' })
-    this.ids = []
-    this.nextY = this.originY
-    this.committedUpto = 0
-    this.liveId = null
-    this.lastTurns = []
     this.active = true
   }
 
@@ -98,76 +79,12 @@ export class TranscriptCanvas {
 
   apply(turns: Turn[]) {
     if (!this.active) return
-    this.lastTurns = turns
     this.editor.run(
       () => {
         for (const t of turns) {
           if (t.final && t.t1 > this.committedUpto) this.commit(t)
         }
-        // only the still-uncommitted tail is "live"; excluding turns at/under the
-        // high-water mark keeps a frozen tail (after a marker) from redrawing below
-        this.drawLive(turns.filter((t) => !t.final && t.t1 > this.committedUpto))
-      },
-      { history: 'ignore' },
-    )
-  }
-
-  /** Drop a divider line (e.g. a playhead timestamp after a rewind/skip): freeze
-   * whatever is currently grey, print `label`, and make the next turn start on a
-   * new line below it. */
-  marker(label: string) {
-    if (!this.active) return
-    this.editor.run(
-      () => {
-        if (this.liveId) {
-          this.editor.deleteShape(this.liveId)
-          this.ids = this.ids.filter((i) => i !== this.liveId)
-          this.liveId = null
-        }
-        for (const t of this.lastTurns) {
-          if (t.t1 > this.committedUpto) this.commit(t)
-        }
-        this.nextY += GAP
-        const id = createShapeId(`mark-${Date.now()}`)
-        this.editor.createShape({
-          id,
-          type: 'text',
-          x: this.x,
-          y: this.nextY,
-          props: {
-            richText: toRichText(label),
-            color: 'grey',
-            size: 's',
-            font: 'mono',
-            textAlign: 'start',
-            autoSize: false,
-            w: WIDTH,
-          },
-        })
-        this.ids.push(id)
-        this.nextY += (this.editor.getShapePageBounds(id)?.h ?? 20) + GAP
-        this.keepInView()
-      },
-      { history: 'ignore' },
-    )
-  }
-
-  /** Commit the still-grey tail in speaker colour. Used when a file finishes:
-   * the last few turns never go `final` (the server keeps the newest region
-   * revisable, and the very last turn is never final), so without this they
-   * would stay grey forever once the audio stops. */
-  flush() {
-    if (!this.active) return
-    this.editor.run(
-      () => {
-        if (this.liveId) {
-          this.editor.deleteShape(this.liveId)
-          this.ids = this.ids.filter((i) => i !== this.liveId)
-          this.liveId = null
-        }
-        for (const t of this.lastTurns) {
-          if (t.t1 > this.committedUpto) this.commit(t)
-        }
+        this.drawLive(turns.filter((t) => !t.final))
       },
       { history: 'ignore' },
     )
@@ -193,7 +110,6 @@ export class TranscriptCanvas {
         w: WIDTH,
       },
     })
-    this.ids.push(id)
     this.nextY += (this.editor.getShapePageBounds(id)?.h ?? 24) + GAP
     this.keepInView()
   }
@@ -203,14 +119,12 @@ export class TranscriptCanvas {
     if (!text.trim()) {
       if (this.liveId) {
         this.editor.deleteShape(this.liveId)
-        this.ids = this.ids.filter((i) => i !== this.liveId)
         this.liveId = null
       }
       return
     }
     if (!this.liveId) {
       this.liveId = createShapeId(`live-${Date.now()}`)
-      this.ids.push(this.liveId)
       this.editor.createShape({
         id: this.liveId,
         type: 'text',
@@ -235,18 +149,14 @@ export class TranscriptCanvas {
         props: { richText: toRichText(text) },
       })
     }
-    // follow the growing tail, not just committed turns, so the view keeps up
-    // during the long grey stretches between commits
-    const b = this.editor.getShapePageBounds(this.liveId)
-    this.keepInView(b ? b.maxY : this.nextY)
   }
 
   /** Scroll only when the write head has fallen off the bottom of the viewport. */
-  private keepInView(y: number = this.nextY) {
+  private keepInView() {
     if (!this.follow) return
     const vp = this.editor.getViewportPageBounds()
-    if (y > vp.maxY - SCROLL_MARGIN || y < vp.minY) {
-      this.editor.centerOnPoint({ x: this.x + WIDTH / 2, y })
+    if (this.nextY > vp.maxY - SCROLL_MARGIN || this.nextY < vp.minY) {
+      this.editor.centerOnPoint({ x: this.x + WIDTH / 2, y: this.nextY })
     }
   }
 }

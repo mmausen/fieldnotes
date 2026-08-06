@@ -295,12 +295,6 @@ def _startup():
 
 if (CANVAS / "assets").is_dir():
     app.mount("/assets", StaticFiles(directory=CANVAS / "assets"), name="canvas-assets")
-# local embedding model + onnxruntime wasm for the interview cross-referencer
-# (kept off any CDN so the app stays fully offline)
-if (CANVAS / "models").is_dir():
-    app.mount("/models", StaticFiles(directory=CANVAS / "models"), name="canvas-models")
-if (CANVAS / "ort").is_dir():
-    app.mount("/ort", StaticFiles(directory=CANVAS / "ort"), name="canvas-ort")
 
 
 @app.get("/")
