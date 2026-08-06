@@ -82,6 +82,25 @@ fi
 # it exists, so the whole app is one process on one port.
 echo "==> 5/5  tldraw canvas"
 npm --prefix "$CANVAS" install --no-fund --no-audit --loglevel=error
+
+# Interview cross-referencer: a local sentence-embedding model + the onnxruntime
+# WASM, served from canvas/public so nothing hits a CDN at runtime. Both are
+# regenerated here (not committed) -- the model is downloaded once, the WASM is
+# copied from the installed onnxruntime-web.
+MODEL_DIR="$CANVAS/public/models/Xenova/all-MiniLM-L6-v2"
+if [ ! -f "$MODEL_DIR/onnx/model_quantized.onnx" ]; then
+  echo "    downloading embedding model (all-MiniLM-L6-v2, ~23 MB)"
+  mkdir -p "$MODEL_DIR/onnx"
+  HF="https://huggingface.co/Xenova/all-MiniLM-L6-v2/resolve/main"
+  for f in config.json tokenizer.json tokenizer_config.json; do
+    curl -fsSL "$HF/$f" -o "$MODEL_DIR/$f"
+  done
+  curl -fsSL "$HF/onnx/model_quantized.onnx" -o "$MODEL_DIR/onnx/model_quantized.onnx"
+fi
+mkdir -p "$CANVAS/public/ort"
+cp "$CANVAS"/node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded*.wasm "$CANVAS/public/ort/" 2>/dev/null || true
+cp "$CANVAS"/node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded*.mjs  "$CANVAS/public/ort/" 2>/dev/null || true
+
 npm --prefix "$CANVAS" run build >/dev/null
 
 cat <<EOF
