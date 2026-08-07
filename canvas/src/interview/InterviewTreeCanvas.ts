@@ -44,8 +44,16 @@ export class InterviewTreeCanvas {
   private box = new Map<string, { cx: number; cy: number; w: number; h: number }>()
   private orig = new Map<string, { color: string; fill: string }>()
   private lastState = new Map<string, QState>()
+  private follow = true
+  private followedQid: string | null = null
 
   constructor(private editor: Editor) {}
+
+  /** When on, the camera glides to frame the current (and next) question. */
+  setFollow(v: boolean) {
+    this.follow = v
+    this.followedQid = null // re-follow the current question next apply
+  }
 
   isBuilt() {
     return this.built
@@ -146,6 +154,36 @@ export class InterviewTreeCanvas {
       },
       { history: 'ignore' },
     )
+
+    this.followCamera(matcher.currentQid, matcher.nextQid)
+  }
+
+  /** Glide the camera to frame the current question (and its next), once per
+   * new current question, at a steady zoom so it reads like a moving playhead. */
+  private followCamera(currentQid: string | null, nextQid: string | null) {
+    if (!this.follow || !currentQid || currentQid === this.followedQid) return
+    const c = this.box.get(currentQid)
+    if (!c) return
+    this.followedQid = currentQid
+    let minX = c.cx - c.w / 2
+    let minY = c.cy - c.h / 2
+    let maxX = c.cx + c.w / 2
+    let maxY = c.cy + c.h / 2
+    const n = nextQid ? this.box.get(nextQid) : undefined
+    if (n) {
+      minX = Math.min(minX, n.cx - n.w / 2)
+      minY = Math.min(minY, n.cy - n.h / 2)
+      maxX = Math.max(maxX, n.cx + n.w / 2)
+      maxY = Math.max(maxY, n.cy + n.h / 2)
+    }
+    // pad to a comfortable, roughly constant window so the zoom stays steady
+    const padX = 520
+    const padY = 340
+    const box = new Box(minX - padX, minY - padY, maxX - minX + padX * 2, maxY - minY + padY * 2)
+    this.editor.zoomToBounds(box, {
+      inset: 0,
+      animation: { duration: 650, easing: (t) => 1 - Math.pow(1 - t, 3) },
+    })
   }
 
   /** A rectangle highlight around the current/next question box. */

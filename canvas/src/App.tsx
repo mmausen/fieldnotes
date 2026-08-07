@@ -17,6 +17,7 @@ export default function App() {
   const [follow, setFollow] = useState(true)
   const [fileMode, setFileMode] = useState(false)
   const [playing, setPlaying] = useState(false)
+  const [subtitle, setSubtitle] = useState<{ spk: string; text: string }[]>([])
 
   // interview cross-referencing
   const matcherRef = useRef<Matcher | null>(null)
@@ -62,6 +63,16 @@ export default function App() {
     [drain],
   )
 
+  // live captions: keep only the 3 most recent turns, coloured per speaker
+  const updateSubtitle = useCallback((turns: Turn[]) => {
+    setSubtitle(
+      turns
+        .slice(-3)
+        .filter((t) => t.text.trim())
+        .map((t) => ({ spk: t.spk, text: t.text })),
+    )
+  }, [])
+
   // ingest the still-unsettled tail (turns that never went `final`) when a
   // recording ends, so the whole transcript gets cross-referenced
   const flushMatcher = useCallback(() => {
@@ -76,25 +87,22 @@ export default function App() {
     void drain()
   }, [drain])
 
-  const toggleInterview = useCallback(async () => {
+  // draw the tree immediately (structure + current colours), hand the camera to
+  // it, then load the embedding model in the background and recolour when ready
+  const openInterview = useCallback(async () => {
     const editor = editorRef.current
     if (!editor) return
-    if (showInterview) {
-      treeRef.current?.clear()
-      setShowInterview(false)
-      return
-    }
     setShowInterview(true)
+    canvasRef.current?.setFollow(false) // the tree camera takes over
 
     let m = matcherRef.current
     if (!m) {
       m = new Matcher()
       matcherRef.current = m
     }
-    // draw the tree immediately (structure + current colours), then load the
-    // model in the background and recolour once it's ready
     if (!treeRef.current) treeRef.current = new InterviewTreeCanvas(editor)
     treeRef.current.build(m)
+    treeRef.current.setFollow(follow)
 
     if (!m.ready) {
       setInterviewStatus('loading model…')
@@ -115,7 +123,17 @@ export default function App() {
         setInterviewStatus('model failed: ' + (e as Error).message)
       }
     }
-  }, [showInterview])
+  }, [follow])
+
+  const toggleInterview = useCallback(async () => {
+    if (showInterview) {
+      treeRef.current?.clear()
+      setShowInterview(false)
+      canvasRef.current?.setFollow(follow) // hand Follow back to the transcript
+      return
+    }
+    await openInterview()
+  }, [showInterview, follow, openInterview])
 
   // push matcher state onto the canvas tree whenever it changes
   useEffect(() => {
@@ -166,6 +184,7 @@ export default function App() {
     canvas.setFollow(follow)
     canvasRef.current = canvas
     newInterviewSession()
+    void openInterview() // Follow + subtitles are the default view while recording
 
     const cap = new Capture()
     captureRef.current = cap
@@ -175,11 +194,13 @@ export default function App() {
       onTurns: (turns) => {
         canvas.apply(turns)
         feedMatcher(turns)
+        updateSubtitle(turns)
       },
       onStatus: setStatus,
       onEnded: () => {
         canvas.endSession()
         setRunning(false)
+        setSubtitle([])
       },
     })
     if (!ok) {
@@ -197,6 +218,7 @@ export default function App() {
     canvas.setFollow(follow)
     canvasRef.current = canvas
     newInterviewSession()
+    void openInterview() // Follow + subtitles are the default view while recording
 
     const cap = new Capture()
     captureRef.current = cap
@@ -207,6 +229,7 @@ export default function App() {
       onTurns: (turns) => {
         canvas.apply(turns)
         feedMatcher(turns)
+        updateSubtitle(turns)
       },
       onStatus: setStatus,
       onState: setPlaying,
@@ -246,12 +269,16 @@ export default function App() {
     setFileMode(false)
     setPlaying(false)
     setStatus('idle')
+    setSubtitle([])
   }
 
   const toggleFollow = () => {
     const next = !follow
     setFollow(next)
-    canvasRef.current?.setFollow(next)
+    // when the interview tree is up, Follow drives the tree camera; otherwise it
+    // follows the transcript
+    treeRef.current?.setFollow(next)
+    canvasRef.current?.setFollow(next && !showInterview)
   }
 
   return (
@@ -304,8 +331,58 @@ export default function App() {
           {showInterview && !matcherRef.current?.ready ? interviewStatus : status}
         </span>
       </div>
+      {subtitle.length > 0 && (
+        <div style={subtitleWrap}>
+          <div style={subtitleBox}>
+            {subtitle.map((line, i) => (
+              <div key={i} style={{ ...subtitleLine, color: spkColor(line.spk) }}>
+                <b style={{ opacity: 0.85 }}>{spkLabel(line.spk)}</b> {line.text}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
+}
+
+// bright, dark-background-friendly speaker colours (match static/index.html)
+const SPK_COLOR = ['#6ea8fe', '#7fd18f', '#e0a76b', '#d98cc4']
+function spkColor(spk: string): string {
+  const m = /(\d+)/.exec(spk)
+  return m ? SPK_COLOR[Number(m[1]) % SPK_COLOR.length] : '#e6e6e6'
+}
+function spkLabel(spk: string): string {
+  const m = /(\d+)/.exec(spk)
+  return m ? `S${Number(m[1])}` : '' // match the on-canvas transcript labels
+}
+
+const subtitleWrap: React.CSSProperties = {
+  position: 'absolute',
+  bottom: 96,
+  left: 0,
+  right: 0,
+  display: 'flex',
+  justifyContent: 'center',
+  pointerEvents: 'none',
+  zIndex: 450,
+  padding: '0 8%',
+}
+const subtitleBox: React.CSSProperties = {
+  background: 'rgba(0,0,0,.78)',
+  font: '600 22px/1.45 ui-sans-serif, system-ui, sans-serif',
+  padding: '10px 18px',
+  borderRadius: 8,
+  textAlign: 'center',
+  maxWidth: 900,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 2,
+  boxShadow: '0 2px 12px rgba(0,0,0,.35)',
+}
+const subtitleLine: React.CSSProperties = {
+  whiteSpace: 'pre-wrap',
+  wordBreak: 'break-word',
 }
 
 const bar: React.CSSProperties = {
